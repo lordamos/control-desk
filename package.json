@@ -1,17 +1,23 @@
 {
   "name": "hermes-control-desk",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Hermes Control Desk — web, Electron, and Windows WPF controller for the Hermes Memory OS VPS",
+  "author": "lordamos",
   "type": "module",
+  "main": "desktop/main.mjs",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "dev:ui": "vite --port=3000 --host=0.0.0.0",
     "server": "tsx server/index.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist dist-server release",
     "lint": "tsc --noEmit",
-    "test": "tsx --test server/ssh.test.ts"
+    "test": "tsx --test server/ssh.test.ts",
+    "desktop": "node scripts/desktop.mjs",
+    "desktop:pack": "node scripts/desktop-build.mjs && electron-builder --linux dir",
+    "desktop:pack:win": "node scripts/desktop-build.mjs && electron-builder --win portable"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
@@ -27,9 +33,38 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
+    "esbuild": "^0.25.8",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "build": {
+    "appId": "com.hermes.control-desk",
+    "productName": "Hermes Control Desk",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**",
+      "dist/**",
+      "dist-server/**",
+      "package.json"
+    ],
+    "asar": true,
+    "linux": {
+      "target": ["dir"],
+      "category": "Network"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    }
   }
 }

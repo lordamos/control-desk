@@ -6,7 +6,25 @@ Default target: `root@100.118.230.116`. Stack path: `/opt/hermes-memory-os` with
 
 If the VPS is unreachable (no Tailscale path, no SSH keys, restricted egress), the desk still loads and shows **OFFLINE** / SSH error output. It does not wait for connectivity.
 
-## Windows desktop app
+## Electron desktop app
+
+Same web UI and SSH backend in a native window (Windows, Linux, macOS).
+
+```bash
+npm install
+npm run desktop
+```
+
+Packaged builds:
+
+```bash
+npm run desktop:pack          # Linux unpacked dir under release/
+npm run desktop:pack:win      # Windows portable .exe (needs Wine on Linux)
+```
+
+The WPF app below is still the canonical Windows STA/OpenSSH desk.
+
+## Windows WPF desktop app
 
 Requires the **OpenSSH Client** and PowerShell in a **STA** apartment (WPF). Saved config lives at `%APPDATA%\HermesControlDesk\config.json`.
 
@@ -50,6 +68,7 @@ Control Desk **START LABS** runs the same `docker compose … up -d` once that f
 
 Useful scripts:
 
+- `npm run desktop` — Electron window around the web desk
 - `npm run server` — API only (`0.0.0.0:8787`)
 - `npm test` — command-map and SSH-flag checks (no live VPS calls)
 - `npm run lint` — TypeScript
