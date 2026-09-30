@@ -10,4 +10,3 @@ coverage/
 .venv/
 __pycache__/
 *.pyc
-jarvis_sessions/
