@@ -61,6 +61,7 @@ export default function App() {
   const [kali, setKali] = useState<ServiceStatus>(UNKNOWN);
   const [runner, setRunner] = useState<ServiceStatus>(UNKNOWN);
   const [cli, setCli] = useState<ServiceStatus>(UNKNOWN);
+  const [pathBlocked, setPathBlocked] = useState(false);
   const outputRef = useRef<HTMLTextAreaElement>(null);
   const rawRef = useRef<HTMLTextAreaElement>(null);
   const started = useRef(false);
@@ -88,6 +89,7 @@ export default function App() {
       setKali(status.kali);
       setRunner(status.runner);
       setCli(status.cli);
+      setPathBlocked(Boolean(status.sshUnreachable));
       if (status.sshUnreachable && status.sshError) {
         addLine(`SSH unreachable: ${status.sshError.split("\n")[0]}`);
       }
@@ -104,6 +106,7 @@ export default function App() {
     setKali(offline);
     setRunner({online: false, label: "DOWN"});
     setCli({online: false, label: "MISSING"});
+    setPathBlocked(true);
     addLine(`ERROR: ${reason}`);
   }, [addLine]);
 
@@ -240,6 +243,16 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {pathBlocked ? (
+        <div className="hcd-banner" role="status">
+          The desk is running. OFFLINE means this PC cannot SSH to the VPS
+          (Tailscale + OpenSSH key for the user@host above). That is not an app
+          crash.
+        </div>
+      ) : (
+        <div aria-hidden="true" />
+      )}
 
       <div className="hcd-status-block">
       <section className="hcd-status" aria-label="Service status">

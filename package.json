@@ -17,7 +17,7 @@
     "test": "tsx --test server/ssh.test.ts",
     "desktop": "node scripts/desktop.mjs",
     "desktop:pack": "node scripts/desktop-build.mjs && electron-builder --linux dir",
-    "desktop:pack:win": "node scripts/desktop-build.mjs && electron-builder --win portable"
+    "desktop:pack:win": "node scripts/desktop-build.mjs && electron-builder --win portable zip"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
@@ -51,20 +51,32 @@
       "desktop/**",
       "dist/**",
       "dist-server/**",
-      "package.json"
+      "package.json",
+      "!**/node_modules/**"
     ],
     "asar": true,
+    "asarUnpack": [
+      "dist-server/**"
+    ],
     "linux": {
       "target": ["dir"],
       "category": "Network"
     },
     "win": {
+      "signAndEditExecutable": false,
       "target": [
         {
           "target": "portable",
           "arch": ["x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64"]
         }
       ]
+    },
+    "portable": {
+      "artifactName": "Hermes-Control-Desk-${version}.exe"
     }
   }
 }

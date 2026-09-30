@@ -1,17 +1,28 @@
-import {app, BrowserWindow, shell} from "electron";
-import {spawn} from "node:child_process";
+import {app, BrowserWindow, dialog, shell} from "electron";
+import fs from "node:fs";
 import http from "node:http";
+import {createRequire} from "node:module";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, "..");
+void here;
 const DEV_URL = process.env.ELECTRON_START_URL || "http://127.0.0.1:3000";
 const PACKAGED_PORT = process.env.CONTROL_DESK_API_PORT || "18787";
 
-let serverChild = null;
+function logLine(message) {
+  const line = `${new Date().toISOString()} ${message}\n`;
+  try {
+    const logPath = path.join(app.getPath("userData"), "desktop.log");
+    fs.mkdirSync(path.dirname(logPath), {recursive: true});
+    fs.appendFileSync(logPath, line);
+  } catch {
+    /* ignore */
+  }
+  console.log(message);
+}
 
-function waitForHttp(url, timeoutMs = 60_000) {
+function waitForHttp(url, timeoutMs = 20_000) {
   const started = Date.now();
   return new Promise((resolve, reject) => {
     const tick = () => {
@@ -24,26 +35,31 @@ function waitForHttp(url, timeoutMs = 60_000) {
           reject(new Error(`Timed out waiting for ${url}`));
           return;
         }
-        setTimeout(tick, 250);
+        setTimeout(tick, 200);
       });
     };
     tick();
   });
 }
 
+function resolvePackagedFile(...parts) {
+  const fromApp = path.join(app.getAppPath(), ...parts);
+  if (fs.existsSync(fromApp)) return fromApp;
+  const unpacked = path.join(process.resourcesPath, "app.asar.unpacked", ...parts);
+  if (fs.existsSync(unpacked)) return unpacked;
+  return fromApp;
+}
+
 function startPackagedServer() {
-  const distUi = path.join(root, "dist");
-  const serverJs = path.join(root, "dist-server", "index.cjs");
-  serverChild = spawn(process.execPath, [serverJs], {
-    cwd: root,
-    env: {
-      ...process.env,
-      ELECTRON_RUN_AS_NODE: "1",
-      CONTROL_DESK_API_PORT: PACKAGED_PORT,
-      CONTROL_DESK_STATIC: distUi,
-    },
-    stdio: "inherit",
-  });
+  const distUi = resolvePackagedFile("dist");
+  const serverJs = resolvePackagedFile("dist-server", "index.cjs");
+  process.env.CONTROL_DESK_API_PORT = PACKAGED_PORT;
+  process.env.CONTROL_DESK_STATIC = distUi;
+  logLine(`appPath=${app.getAppPath()}`);
+  logLine(`server=${serverJs} exists=${fs.existsSync(serverJs)}`);
+  logLine(`static=${distUi} exists=${fs.existsSync(distUi)}`);
+  const require = createRequire(import.meta.url);
+  require(serverJs);
   return `http://127.0.0.1:${PACKAGED_PORT}/`;
 }
 
@@ -70,16 +86,24 @@ async function createWindow(url) {
 }
 
 app.whenReady().then(async () => {
-  const url = app.isPackaged ? startPackagedServer() : DEV_URL;
-  await waitForHttp(url);
-  await createWindow(url);
+  try {
+    const url = app.isPackaged ? startPackagedServer() : DEV_URL;
+    logLine(`waiting for ${url} packaged=${app.isPackaged}`);
+    await waitForHttp(url);
+    logLine(`ready ${url}`);
+    await createWindow(url);
+  } catch (err) {
+    const message = err instanceof Error ? err.stack || err.message : String(err);
+    logLine(`FATAL ${message}`);
+    dialog.showErrorBox(
+      "Hermes Control Desk failed to start",
+      `${message}\n\nLog: ${path.join(app.getPath("userData"), "desktop.log")}`,
+    );
+    app.quit();
+  }
 });
 
 app.on("window-all-closed", () => {
-  if (serverChild) serverChild.kill();
   app.quit();
 });
 
-process.on("exit", () => {
-  if (serverChild) serverChild.kill();
-});

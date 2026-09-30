@@ -8,19 +8,20 @@ If the VPS is unreachable (no Tailscale path, no SSH keys, restricted egress), t
 
 ## Electron desktop app
 
-Same web UI and SSH backend in a native window (Windows, Linux, macOS).
+Same web UI and SSH backend in a native window.
 
 ```bash
 npm install
 npm run desktop
 ```
 
-Packaged builds:
+Windows (unsigned). If SmartScreen blocks it: More info → Run anyway.
 
 ```bash
-npm run desktop:pack          # Linux unpacked dir under release/
-npm run desktop:pack:win      # Windows portable .exe (needs Wine on Linux)
+npm run desktop:pack:win
 ```
+
+Creates `release/Hermes-Control-Desk-0.1.0.exe` (portable) and a `.zip` of the unpacked win32 app. Log on the PC: `%APPDATA%\Hermes Control Desk\desktop.log`.
 
 The WPF app below is still the canonical Windows STA/OpenSSH desk.
 

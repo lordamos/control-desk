@@ -23,7 +23,7 @@ body,
   height: 100%;
   padding: 18px;
   display: grid;
-  grid-template-rows: auto auto minmax(220px, 1fr) 230px;
+  grid-template-rows: auto auto auto minmax(220px, 1fr) 230px;
   background: #080c12;
   color: #eaf1f8;
 }
@@ -38,6 +38,16 @@ body,
   gap: 16px;
   margin-bottom: 16px;
   align-items: center;
+}
+
+.hcd-banner {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid #5a3d12;
+  background: #1a1408;
+  color: #f0d9a8;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .hcd-title {

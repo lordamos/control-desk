@@ -26,5 +26,4 @@ run(bin("esbuild"), [
   "--platform=node",
   "--format=cjs",
   "--outfile=dist-server/index.cjs",
-  "--packages=external",
 ]);
